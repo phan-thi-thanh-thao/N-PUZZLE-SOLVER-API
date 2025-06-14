@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>N-Puzzle Test Page</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .board-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-top: 20px;
+    }
+    .board {
+      border: 2px solid #333;
+      padding: 10px;
+      border-radius: 5px;
+      position: relative;
+    }
+    .board-title {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 5px;
+    }
+    .cell {
+      width: 50px;
+      height: 50px;
+      border: 1px solid #ccc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      background-color: #f0f0f0;
+      transition: all 0.3s ease;
+    }
+    .cell.empty {
+      background-color: #ddd;
+    }
+    .cell.moving {
+      background-color: #ffeb3b;
+      transform: scale(1.1);
+    }
+    .result {
+      margin-top: 10px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      display: none;
+    }
+    .result.show {
+      display: block;
+    }
+    button {
+      margin-top: 10px;
+      padding: 5px 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .controls {
+      margin-top: 10px;
+      display: flex;
+      gap: 10px;
+    }
+    .controls button {
+      flex: 1;
+    }
+    .controls button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+    .step-counter {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>N-Puzzle Test Page</h1>
+  <div class="board-container" id="boardContainer"></div>
+
+  <script>
+    const testCases = [
+      {
+        title: "Goal State",
+        board: [[1, 2, 3], [4, 5, 6], [7, 8, 0]]
+      },
+      {
+        title: "One Move Away",
+        board: [[1, 2, 3], [4, 5, 0], [7, 8, 6]]
+      },
+      {
+        title: "Two Moves Away",
+        board: [[1, 2, 3], [4, 0, 5], [7, 8, 6]]
+      },
+      {
+        title: "Complex Puzzle",
+        board: [[0, 1, 3], [4, 2, 5], [7, 8, 6]]
+      },
+      {
+        title: "Empty Corner Top Left",
+        board: [[0, 1, 3], [4, 2, 5], [7, 8, 6]]
+      },
+      {
+        title: "Empty Corner Top Right",
+        board: [[1, 3, 0], [4, 2, 5], [7, 8, 6]]
+      },
+      {
+        title: "Empty Corner Bottom Left",
+        board: [[1, 2, 3], [4, 5, 6], [0, 7, 8]]
+      },
+      {
+        title: "Empty Corner Bottom Right",
+        board: [[1, 2, 3], [4, 5, 6], [7, 8, 0]]
+      },
+      {
+        title: "Empty Edge Top",
+        board: [[1, 0, 3], [4, 2, 5], [7, 8, 6]]
+      },
+      {
+        title: "Empty Edge Left",
+        board: [[1, 2, 3], [0, 4, 5], [7, 8, 6]]
+      },
+      {
+        title: "Empty Edge Right",
+        board: [[1, 2, 3], [4, 5, 0], [7, 8, 6]]
+      },
+      {
+        title: "Empty Edge Bottom",
+        board: [[1, 2, 3], [4, 5, 6], [7, 0, 8]]
+      },
+      {
+        title: "Empty Center",
+        board: [[1, 2, 3], [4, 0, 5], [7, 8, 6]]
+      }
+    ];
+
+    function createBoardElement(testCase) {
+      const boardDiv = document.createElement('div');
+      boardDiv.className = 'board';
+      
+      const titleDiv = document.createElement('div');
+      titleDiv.className = 'board-title';
+      titleDiv.textContent = testCase.title;
+      boardDiv.appendChild(titleDiv);
+
+      const gridDiv = document.createElement('div');
+      gridDiv.className = 'grid';
+      gridDiv.id = `grid-${testCase.title.replace(/\s+/g, '-')}`;
+      
+      testCase.board.forEach(row => {
+        row.forEach(cell => {
+          const cellDiv = document.createElement('div');
+          cellDiv.className = 'cell' + (cell === 0 ? ' empty' : '');
+          cellDiv.textContent = cell || '';
+          gridDiv.appendChild(cellDiv);
+        });
+      });
+      
+      boardDiv.appendChild(gridDiv);
+
+      const controlsDiv = document.createElement('div');
+      controlsDiv.className = 'controls';
+
+      const solveButton = document.createElement('button');
+      solveButton.textContent = 'Solve';
+      solveButton.onclick = () => solvePuzzle(testCase.board, boardDiv);
+      controlsDiv.appendChild(solveButton);
+
+      const stepCounter = document.createElement('div');
+      stepCounter.className = 'step-counter';
+      stepCounter.style.display = 'none';
+      boardDiv.appendChild(stepCounter);
+
+      const resultDiv = document.createElement('div');
+      resultDiv.className = 'result';
+      boardDiv.appendChild(resultDiv);
+
+      boardDiv.appendChild(controlsDiv);
+
+      return boardDiv;
+    }
+
+    async function solvePuzzle(board, boardDiv) {
+      const resultDiv = boardDiv.querySelector('.result');
+      const stepCounter = boardDiv.querySelector('.step-counter');
+      const solveButton = boardDiv.querySelector('button');
+      
+      resultDiv.textContent = 'Solving...';
+      resultDiv.className = 'result show';
+      solveButton.disabled = true;
+
+      try {
+        const response = await fetch('/api/solve', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ board })
+        });
+
+        const data = await response.json();
+        
+        if (data.solution) {
+          resultDiv.innerHTML = `
+            <strong>Solution found!</strong><br>
+            Steps: ${data.steps}<br>
+            Solution path: ${data.solution.length} states
+          `;
+          
+          // Show step counter
+          stepCounter.style.display = 'block';
+          stepCounter.textContent = `Step: 0/${data.solution.length - 1}`;
+
+          // Add animation controls
+          const controlsDiv = boardDiv.querySelector('.controls');
+          controlsDiv.innerHTML = `
+            <button onclick="animateSolution(${JSON.stringify(data.solution)}, '${boardDiv.id}', 0)">Start Animation</button>
+            <button onclick="stopAnimation()">Stop</button>
+          `;
+        } else {
+          resultDiv.innerHTML = `
+            <strong>No solution found</strong><br>
+            ${data.error || ''}
+          `;
+          solveButton.disabled = false;
+        }
+      } catch (error) {
+        resultDiv.innerHTML = `
+          <strong>Error:</strong><br>
+          ${error.message}
+        `;
+        solveButton.disabled = false;
+      }
+    }
+
+    let currentAnimation = null;
+
+    function animateSolution(solution, boardId, currentStep) {
+      if (currentAnimation) {
+        clearTimeout(currentAnimation);
+      }
+
+      const grid = document.querySelector(`#${boardId} .grid`);
+      const stepCounter = document.querySelector(`#${boardId} .step-counter`);
+      
+      if (currentStep >= solution.length) {
+        return;
+      }
+
+      // Update step counter
+      stepCounter.textContent = `Step: ${currentStep}/${solution.length - 1}`;
+
+      // Find the moving cell (the one that will become empty)
+      const currentState = solution[currentStep];
+      const nextState = solution[currentStep + 1];
+      let movingCell = null;
+      let movingValue = null;
+
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+          if (currentState[i][j] !== 0 && nextState[i][j] === 0) {
+            movingCell = grid.children[i * 3 + j];
+            movingValue = currentState[i][j];
+            break;
+          }
+        }
+        if (movingCell) break;
+      }
+
+      // Update the grid
+      grid.innerHTML = '';
+      nextState.forEach(row => {
+        row.forEach(cell => {
+          const cellDiv = document.createElement('div');
+          cellDiv.className = 'cell' + (cell === 0 ? ' empty' : '');
+          if (cell === movingValue) {
+            cellDiv.classList.add('moving');
+          }
+          cellDiv.textContent = cell || '';
+          grid.appendChild(cellDiv);
+        });
+      });
+
+      // Schedule next step
+      currentAnimation = setTimeout(() => {
+        animateSolution(solution, boardId, currentStep + 1);
+      }, 500);
+    }
+
+    function stopAnimation() {
+      if (currentAnimation) {
+        clearTimeout(currentAnimation);
+        currentAnimation = null;
+      }
+    }
+
+    // Initialize the page
+    const container = document.getElementById('boardContainer');
+    testCases.forEach(testCase => {
+      const boardElement = createBoardElement(testCase);
+      boardElement.id = `board-${testCase.title.replace(/\s+/g, '-')}`;
+      container.appendChild(boardElement);
+    });
+  </script>
+</body>
+
+</html>

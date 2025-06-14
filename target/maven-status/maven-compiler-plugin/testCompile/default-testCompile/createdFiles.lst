@@ -1,0 +1,5 @@
+com\npuzzle\solver\TestDataProvider.class
+com\npuzzle\solver\NPuzzleSolverTest.class
+com\npuzzle\controller\PuzzleControllerTest.class
+com\npuzzle\model\PuzzleRequestTest.class
+com\npuzzle\model\PuzzleResultTest.class

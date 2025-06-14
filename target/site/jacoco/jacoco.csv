@@ -1,0 +1,8 @@
+GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
+n-puzzle-api,com.npuzzle.model,PuzzleRequest,0,10,0,0,0,4,0,3,0,3
+n-puzzle-api,com.npuzzle.model,PuzzleResult,0,23,0,0,0,10,0,5,0,5
+n-puzzle-api,com.npuzzle.controller,PuzzleController,0,21,0,0,0,6,0,2,0,2
+n-puzzle-api,com.npuzzle,Application,8,0,0,0,3,0,2,0,2,0
+n-puzzle-api,com.npuzzle.solver,NPuzzleSolver,10,434,4,46,2,59,4,29,0,8
+n-puzzle-api,com.npuzzle.solver,NPuzzleSolver.Node,12,15,0,0,0,1,4,1,4,1
+n-puzzle-api,com.npuzzle.config,WebConfig,45,0,0,0,6,0,2,0,2,0

@@ -1,0 +1,8 @@
+-------------------------------------------------------------------------------
+Test set: com.npuzzle.controller.PuzzleControllerTest
+-------------------------------------------------------------------------------
+Tests run: 6, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.071 s <<< FAILURE! - in com.npuzzle.controller.PuzzleControllerTest
+testSolvePuzzleWithInvalidBoardReturnsBadRequest  Time elapsed: 0.015 s  <<< FAILURE!
+org.opentest4j.AssertionFailedError: expected: <Invalid board size> but was: <Board must contain number 0>
+	at com.npuzzle.controller.PuzzleControllerTest.testSolvePuzzleWithInvalidBoardReturnsBadRequest(PuzzleControllerTest.java:118)
+
